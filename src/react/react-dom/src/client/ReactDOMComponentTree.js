@@ -4,37 +4,16 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
-                                                                   
-                                                          
-             
-                      
-                              
-                                 
-             
-            
-               
-           
-                   
-        
-                              
+import { HostComponent, HostText, HostRoot, SuspenseComponent } from 'react-reconciler/src/ReactWorkTags';
 
-import {
-  HostComponent,
-  HostText,
-  HostRoot,
-  SuspenseComponent,
-} from 'react-reconciler/src/ReactWorkTags';
+import { getParentSuspenseInstance } from './ReactDOMHostConfig';
 
-import {getParentSuspenseInstance} from './ReactDOMHostConfig';
+import { enableScopeAPI } from 'shared/ReactFeatureFlags';
 
-import {enableScopeAPI} from 'shared/ReactFeatureFlags';
-
-const randomKey = Math.random()
-  .toString(36)
-  .slice(2);
+const randomKey = Math.random().toString(36).slice(2);
 const internalInstanceKey = '__reactFiber$' + randomKey;
 const internalPropsKey = '__reactProps$' + randomKey;
 const internalContainerInstanceKey = '__reactContainer$' + randomKey;
@@ -42,32 +21,29 @@ const internalEventHandlersKey = '__reactEvents$' + randomKey;
 const internalEventHandlerListenersKey = '__reactListeners$' + randomKey;
 const internalEventHandlesSetKey = '__reactHandles$' + randomKey;
 
-export function detachDeletedInstance(node          )       {
+export function detachDeletedInstance(node) {
   // TODO: This function is only called on host components. I don't think all of
   // these fields are relevant.
-  delete (node     )[internalInstanceKey];
-  delete (node     )[internalPropsKey];
-  delete (node     )[internalEventHandlersKey];
-  delete (node     )[internalEventHandlerListenersKey];
-  delete (node     )[internalEventHandlesSetKey];
+  delete node[internalInstanceKey];
+  delete node[internalPropsKey];
+  delete node[internalEventHandlersKey];
+  delete node[internalEventHandlerListenersKey];
+  delete node[internalEventHandlesSetKey];
 }
 
-export function precacheFiberNode(
-  hostInst       ,
-  node                                                                 ,
-)       {
-  (node     )[internalInstanceKey] = hostInst;
+export function precacheFiberNode(hostInst, node) {
+  node[internalInstanceKey] = hostInst;
 }
 
-export function markContainerAsRoot(hostRoot       , node           )       {
+export function markContainerAsRoot(hostRoot, node) {
   node[internalContainerInstanceKey] = hostRoot;
 }
 
-export function unmarkContainerAsRoot(node           )       {
+export function unmarkContainerAsRoot(node) {
   node[internalContainerInstanceKey] = null;
 }
 
-export function isContainerMarkedAsRoot(node           )          {
+export function isContainerMarkedAsRoot(node) {
   return !!node[internalContainerInstanceKey];
 }
 
@@ -78,8 +54,8 @@ export function isContainerMarkedAsRoot(node           )          {
 // pass the Container node as the targetNode, you will not actually get the
 // HostRoot back. To get to the HostRoot, you need to pass a child of it.
 // The same thing applies to Suspense boundaries.
-export function getClosestInstanceFromNode(targetNode      )               {
-  let targetInst = (targetNode     )[internalInstanceKey];
+export function getClosestInstanceFromNode(targetNode) {
+  let targetInst = targetNode[internalInstanceKey];
   if (targetInst) {
     // Don't return HostRoot or SuspenseComponent here.
     return targetInst;
@@ -96,9 +72,7 @@ export function getClosestInstanceFromNode(targetNode      )               {
     // itself because the fibers are conceptually between the container
     // node and the first child. It isn't surrounding the container node.
     // If it's not a container, we check if it's an instance.
-    targetInst =
-      (parentNode     )[internalContainerInstanceKey] ||
-      (parentNode     )[internalInstanceKey];
+    targetInst = parentNode[internalContainerInstanceKey] || parentNode[internalInstanceKey];
     if (targetInst) {
       // Since this wasn't the direct target of the event, we might have
       // stepped past dehydrated DOM nodes to get here. However they could
@@ -115,10 +89,7 @@ export function getClosestInstanceFromNode(targetNode      )               {
       // have one on the alternate so we need to check in case this was a
       // root.
       const alternate = targetInst.alternate;
-      if (
-        targetInst.child !== null ||
-        (alternate !== null && alternate.child !== null)
-      ) {
+      if (targetInst.child !== null || (alternate !== null && alternate.child !== null)) {
         // Next we need to figure out if the node that skipped past is
         // nested within a dehydrated boundary and if so, which one.
         let suspenseInstance = getParentSuspenseInstance(targetNode);
@@ -157,17 +128,10 @@ export function getClosestInstanceFromNode(targetNode      )               {
  * Given a DOM node, return the ReactDOMComponent or ReactDOMTextComponent
  * instance, or null if the node was not rendered by this React.
  */
-export function getInstanceFromNode(node      )               {
-  const inst =
-    (node     )[internalInstanceKey] ||
-    (node     )[internalContainerInstanceKey];
+export function getInstanceFromNode(node) {
+  const inst = node[internalInstanceKey] || node[internalContainerInstanceKey];
   if (inst) {
-    if (
-      inst.tag === HostComponent ||
-      inst.tag === HostText ||
-      inst.tag === SuspenseComponent ||
-      inst.tag === HostRoot
-    ) {
+    if (inst.tag === HostComponent || inst.tag === HostText || inst.tag === SuspenseComponent || inst.tag === HostRoot) {
       return inst;
     } else {
       return null;
@@ -180,7 +144,7 @@ export function getInstanceFromNode(node      )               {
  * Given a ReactDOMComponent or ReactDOMTextComponent, return the corresponding
  * DOM node.
  */
-export function getNodeFromInstance(inst       )                          {
+export function getNodeFromInstance(inst) {
   if (inst.tag === HostComponent || inst.tag === HostText) {
     // In Fiber this, is just the state node right now. We assume it will be
     // a host component or host text.
@@ -192,65 +156,47 @@ export function getNodeFromInstance(inst       )                          {
   throw new Error('getNodeFromInstance: Invalid argument.');
 }
 
-export function getFiberCurrentPropsFromNode(
-  node                                            ,
-)        {
-  return (node     )[internalPropsKey] || null;
+export function getFiberCurrentPropsFromNode(node) {
+  return node[internalPropsKey] || null;
 }
 
-export function updateFiberProps(
-  node                                            ,
-  props       ,
-)       {
-  (node     )[internalPropsKey] = props;
+export function updateFiberProps(node, props) {
+  node[internalPropsKey] = props;
 }
 
-export function getEventListenerSet(node             )              {
-  let elementListenerSet = (node     )[internalEventHandlersKey];
+export function getEventListenerSet(node) {
+  let elementListenerSet = node[internalEventHandlersKey];
   if (elementListenerSet === undefined) {
-    elementListenerSet = (node     )[internalEventHandlersKey] = new Set();
+    elementListenerSet = node[internalEventHandlersKey] = new Set();
   }
   return elementListenerSet;
 }
 
-export function getFiberFromScopeInstance(
-  scope                    ,
-)               {
+export function getFiberFromScopeInstance(scope) {
   if (enableScopeAPI) {
-    return (scope     )[internalInstanceKey] || null;
+    return scope[internalInstanceKey] || null;
   }
   return null;
 }
 
-export function setEventHandlerListeners(
-  scope                                  ,
-  listeners                                  ,
-)       {
-  (scope     )[internalEventHandlerListenersKey] = listeners;
+export function setEventHandlerListeners(scope, listeners) {
+  scope[internalEventHandlerListenersKey] = listeners;
 }
 
-export function getEventHandlerListeners(
-  scope                                  ,
-)                                          {
-  return (scope     )[internalEventHandlerListenersKey] || null;
+export function getEventHandlerListeners(scope) {
+  return scope[internalEventHandlerListenersKey] || null;
 }
 
-export function addEventHandleToTarget(
-  target                                  ,
-  eventHandle                     ,
-)       {
-  let eventHandles = (target     )[internalEventHandlesSetKey];
+export function addEventHandleToTarget(target, eventHandle) {
+  let eventHandles = target[internalEventHandlesSetKey];
   if (eventHandles === undefined) {
-    eventHandles = (target     )[internalEventHandlesSetKey] = new Set();
+    eventHandles = target[internalEventHandlesSetKey] = new Set();
   }
   eventHandles.add(eventHandle);
 }
 
-export function doesTargetHaveEventHandle(
-  target                                  ,
-  eventHandle                     ,
-)          {
-  const eventHandles = (target     )[internalEventHandlesSetKey];
+export function doesTargetHaveEventHandle(target, eventHandle) {
+  const eventHandles = target[internalEventHandlesSetKey];
   if (eventHandles === undefined) {
     return false;
   }
