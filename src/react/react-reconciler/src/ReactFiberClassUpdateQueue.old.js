@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
 // UpdateQueue is a linked list of prioritized updates.
@@ -84,9 +84,6 @@
 // regardless of priority. Intermediate state may vary according to system
 // resources, but the final state is always the same.
 
-                                                           
-                                                      
-
 import {
   NoLane,
   NoLanes,
@@ -96,53 +93,17 @@ import {
   intersectLanes,
   markRootEntangled,
 } from './ReactFiberLane.old';
-import {
-  enterDisallowedContextReadInDEV,
-  exitDisallowedContextReadInDEV,
-} from './ReactFiberNewContext.old';
-import {Callback, ShouldCapture, DidCapture} from './ReactFiberFlags';
+import { enterDisallowedContextReadInDEV, exitDisallowedContextReadInDEV } from './ReactFiberNewContext.old';
+import { Callback, ShouldCapture, DidCapture } from './ReactFiberFlags';
 
-import {debugRenderPhaseSideEffectsForStrictMode} from 'shared/ReactFeatureFlags';
+import { debugRenderPhaseSideEffectsForStrictMode } from 'shared/ReactFeatureFlags';
 
-import {StrictLegacyMode} from './ReactTypeOfMode';
-import {
-  markSkippedUpdateLanes,
-  isUnsafeClassRenderPhaseUpdate,
-} from './ReactFiberWorkLoop.old';
-import {
-  enqueueConcurrentClassUpdate,
-  unsafe_markUpdateLaneFromFiberToRoot,
-} from './ReactFiberConcurrentUpdates.old';
-import {setIsStrictModeForDevtools} from './ReactFiberDevToolsHook.old';
+import { StrictLegacyMode } from './ReactTypeOfMode';
+import { markSkippedUpdateLanes, isUnsafeClassRenderPhaseUpdate } from './ReactFiberWorkLoop.old';
+import { enqueueConcurrentClassUpdate, unsafe_markUpdateLaneFromFiberToRoot } from './ReactFiberConcurrentUpdates.old';
+import { setIsStrictModeForDevtools } from './ReactFiberDevToolsHook.old';
 
 import assign from 'shared/assign';
-
-                              
-                                                                
-                                          
-                    
-             
-
-                     
-               
-                                 
-
-                             
-   
-
-                                   
-                                
-                                    
-               
-   
-
-                                   
-                   
-                                        
-                                       
-                             
-                                       
-   
 
 export const UpdateState = 0;
 export const ReplaceState = 1;
@@ -165,8 +126,8 @@ if (__DEV__) {
   };
 }
 
-export function initializeUpdateQueue       (fiber       )       {
-  const queue                     = {
+export function initializeUpdateQueue(fiber) {
+  const queue = {
     baseState: fiber.memoizedState,
     firstBaseUpdate: null,
     lastBaseUpdate: null,
@@ -180,15 +141,12 @@ export function initializeUpdateQueue       (fiber       )       {
   fiber.updateQueue = queue;
 }
 
-export function cloneUpdateQueue       (
-  current       ,
-  workInProgress       ,
-)       {
+export function cloneUpdateQueue(current, workInProgress) {
   // Clone the update queue from current. Unless it's already a clone.
-  const queue                     = (workInProgress.updateQueue     );
-  const currentQueue                     = (current.updateQueue     );
+  const queue = workInProgress.updateQueue;
+  const currentQueue = current.updateQueue;
   if (queue === currentQueue) {
-    const clone                     = {
+    const clone = {
       baseState: currentQueue.baseState,
       firstBaseUpdate: currentQueue.firstBaseUpdate,
       lastBaseUpdate: currentQueue.lastBaseUpdate,
@@ -199,8 +157,8 @@ export function cloneUpdateQueue       (
   }
 }
 
-export function createUpdate(eventTime        , lane      )            {
-  const update            = {
+export function createUpdate(eventTime, lane) {
+  const update = {
     eventTime,
     lane,
 
@@ -213,29 +171,22 @@ export function createUpdate(eventTime        , lane      )            {
   return update;
 }
 
-export function enqueueUpdate       (
-  fiber       ,
-  update               ,
-  lane      ,
-)                   {
+export function enqueueUpdate(fiber, update, lane) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
     return null;
   }
 
-  const sharedQueue                     = (updateQueue     ).shared;
+  const sharedQueue = updateQueue.shared;
 
   if (__DEV__) {
-    if (
-      currentlyProcessingQueue === sharedQueue &&
-      !didWarnUpdateInsideUpdate
-    ) {
+    if (currentlyProcessingQueue === sharedQueue && !didWarnUpdateInsideUpdate) {
       console.error(
         'An update (setState, replaceState, or forceUpdate) was scheduled ' +
           'from inside an update function. Update functions should be pure, ' +
           'with zero side-effects. Consider using componentDidUpdate or a ' +
-          'callback.',
+          'callback.'
       );
       didWarnUpdateInsideUpdate = true;
     }
@@ -264,14 +215,14 @@ export function enqueueUpdate       (
   }
 }
 
-export function entangleTransitions(root           , fiber       , lane      ) {
+export function entangleTransitions(root, fiber, lane) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.
     return;
   }
 
-  const sharedQueue                     = (updateQueue     ).shared;
+  const sharedQueue = updateQueue.shared;
   if (isTransitionLane(lane)) {
     let queueLanes = sharedQueue.lanes;
 
@@ -292,19 +243,16 @@ export function entangleTransitions(root           , fiber       , lane      ) {
   }
 }
 
-export function enqueueCapturedUpdate       (
-  workInProgress       ,
-  capturedUpdate               ,
-) {
+export function enqueueCapturedUpdate(workInProgress, capturedUpdate) {
   // Captured updates are updates that are thrown by a child during the render
   // phase. They should be discarded if the render is aborted. Therefore,
   // we should only put them on the work-in-progress queue, not the current one.
-  let queue                     = (workInProgress.updateQueue     );
+  let queue = workInProgress.updateQueue;
 
   // Check if the work-in-progress queue is a clone.
   const current = workInProgress.alternate;
   if (current !== null) {
-    const currentQueue                     = (current.updateQueue     );
+    const currentQueue = current.updateQueue;
     if (queue === currentQueue) {
       // The work-in-progress queue is the same as current. This happens when
       // we bail out on a parent fiber that then captures an error thrown by
@@ -319,7 +267,7 @@ export function enqueueCapturedUpdate       (
         // Loop through the updates and clone them.
         let update = firstBaseUpdate;
         do {
-          const clone                = {
+          const clone = {
             eventTime: update.eventTime,
             lane: update.lane,
 
@@ -371,14 +319,7 @@ export function enqueueCapturedUpdate       (
   queue.lastBaseUpdate = capturedUpdate;
 }
 
-function getStateFromUpdate       (
-  workInProgress       ,
-  queue                    ,
-  update               ,
-  prevState       ,
-  nextProps     ,
-  instance     ,
-)      {
+function getStateFromUpdate(workInProgress, queue, update, prevState, nextProps, instance) {
   switch (update.tag) {
     case ReplaceState: {
       const payload = update.payload;
@@ -389,10 +330,7 @@ function getStateFromUpdate       (
         }
         const nextState = payload.call(instance, prevState, nextProps);
         if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffectsForStrictMode &&
-            workInProgress.mode & StrictLegacyMode
-          ) {
+          if (debugRenderPhaseSideEffectsForStrictMode && workInProgress.mode & StrictLegacyMode) {
             setIsStrictModeForDevtools(true);
             try {
               payload.call(instance, prevState, nextProps);
@@ -408,8 +346,7 @@ function getStateFromUpdate       (
       return payload;
     }
     case CaptureUpdate: {
-      workInProgress.flags =
-        (workInProgress.flags & ~ShouldCapture) | DidCapture;
+      workInProgress.flags = (workInProgress.flags & ~ShouldCapture) | DidCapture;
     }
     // Intentional fallthrough
     case UpdateState: {
@@ -422,10 +359,7 @@ function getStateFromUpdate       (
         }
         partialState = payload.call(instance, prevState, nextProps);
         if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffectsForStrictMode &&
-            workInProgress.mode & StrictLegacyMode
-          ) {
+          if (debugRenderPhaseSideEffectsForStrictMode && workInProgress.mode & StrictLegacyMode) {
             setIsStrictModeForDevtools(true);
             try {
               payload.call(instance, prevState, nextProps);
@@ -454,14 +388,9 @@ function getStateFromUpdate       (
   return prevState;
 }
 
-export function processUpdateQueue       (
-  workInProgress       ,
-  props     ,
-  instance     ,
-  renderLanes       ,
-)       {
+export function processUpdateQueue(workInProgress, props, instance, renderLanes) {
   // This is always non-null on a ClassComponent or HostRoot
-  const queue                     = (workInProgress.updateQueue     );
+  const queue = workInProgress.updateQueue;
 
   hasForceUpdate = false;
 
@@ -498,7 +427,7 @@ export function processUpdateQueue       (
     const current = workInProgress.alternate;
     if (current !== null) {
       // This is always non-null on a ClassComponent or HostRoot
-      const currentQueue                     = (current.updateQueue     );
+      const currentQueue = current.updateQueue;
       const currentLastBaseUpdate = currentQueue.lastBaseUpdate;
       if (currentLastBaseUpdate !== lastBaseUpdate) {
         if (currentLastBaseUpdate === null) {
@@ -531,7 +460,7 @@ export function processUpdateQueue       (
         // Priority is insufficient. Skip this update. If this is the first
         // skipped update, the previous update/state is the new base
         // update/state.
-        const clone                = {
+        const clone = {
           eventTime: updateEventTime,
           lane: updateLane,
 
@@ -553,7 +482,7 @@ export function processUpdateQueue       (
         // This update does have sufficient priority.
 
         if (newLastBaseUpdate !== null) {
-          const clone                = {
+          const clone = {
             eventTime: updateEventTime,
             // This update is going to be committed so we never want uncommit
             // it. Using NoLane works because 0 is a subset of all bitmasks, so
@@ -570,14 +499,7 @@ export function processUpdateQueue       (
         }
 
         // Process this update.
-        newState = getStateFromUpdate(
-          workInProgress,
-          queue,
-          update,
-          newState,
-          props,
-          instance,
-        );
+        newState = getStateFromUpdate(workInProgress, queue, update, newState, props, instance);
         const callback = update.callback;
         if (
           callback !== null &&
@@ -605,7 +527,7 @@ export function processUpdateQueue       (
           const lastPendingUpdate = pendingQueue;
           // Intentionally unsound. Pending updates form a circular list, but we
           // unravel them when transferring them to the base queue.
-          const firstPendingUpdate = ((lastPendingUpdate.next     )               );
+          const firstPendingUpdate = lastPendingUpdate.next;
           lastPendingUpdate.next = null;
           update = firstPendingUpdate;
           queue.lastBaseUpdate = lastPendingUpdate;
@@ -618,7 +540,7 @@ export function processUpdateQueue       (
       newBaseState = newState;
     }
 
-    queue.baseState = ((newBaseState     )       );
+    queue.baseState = newBaseState;
     queue.firstBaseUpdate = newFirstBaseUpdate;
     queue.lastBaseUpdate = newLastBaseUpdate;
 
@@ -630,7 +552,7 @@ export function processUpdateQueue       (
       let interleaved = lastInterleaved;
       do {
         newLanes = mergeLanes(newLanes, interleaved.lane);
-        interleaved = ((interleaved     ).next               );
+        interleaved = interleaved.next;
       } while (interleaved !== lastInterleaved);
     } else if (firstBaseUpdate === null) {
       // `queue.lanes` is used for entangling transitions. We can set it back to
@@ -657,10 +579,7 @@ export function processUpdateQueue       (
 
 function callCallback(callback, context) {
   if (typeof callback !== 'function') {
-    throw new Error(
-      'Invalid argument passed as callback. Expected a function. Instead ' +
-        `received: ${callback}`,
-    );
+    throw new Error('Invalid argument passed as callback. Expected a function. Instead ' + `received: ${callback}`);
   }
 
   callback.call(context);
@@ -670,15 +589,11 @@ export function resetHasForceUpdateBeforeProcessing() {
   hasForceUpdate = false;
 }
 
-export function checkHasForceUpdateAfterProcessing()          {
+export function checkHasForceUpdateAfterProcessing() {
   return hasForceUpdate;
 }
 
-export function commitUpdateQueue       (
-  finishedWork       ,
-  finishedQueue                    ,
-  instance     ,
-)       {
+export function commitUpdateQueue(finishedWork, finishedQueue, instance) {
   // Commit the effects
   const effects = finishedQueue.effects;
   finishedQueue.effects = null;
