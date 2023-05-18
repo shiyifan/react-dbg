@@ -4,10 +4,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
-import {enableNewReconciler} from 'shared/ReactFeatureFlags';
+import { enableNewReconciler } from 'shared/ReactFeatureFlags';
 
 import {
   DiscreteEventPriority as DiscreteEventPriority_old,
@@ -31,44 +31,23 @@ import {
   isHigherEventPriority as isHigherEventPriority_new,
 } from './ReactEventPriorities.new';
 
-                                          
+export const DiscreteEventPriority = enableNewReconciler ? DiscreteEventPriority_new : DiscreteEventPriority_old;
+export const ContinuousEventPriority = enableNewReconciler ? ContinuousEventPriority_new : ContinuousEventPriority_old;
+export const DefaultEventPriority = enableNewReconciler ? DefaultEventPriority_new : DefaultEventPriority_old;
+export const IdleEventPriority = enableNewReconciler ? IdleEventPriority_new : IdleEventPriority_old;
 
-export const DiscreteEventPriority                = enableNewReconciler
-  ? (DiscreteEventPriority_new     )
-  : (DiscreteEventPriority_old     );
-export const ContinuousEventPriority                = enableNewReconciler
-  ? (ContinuousEventPriority_new     )
-  : (ContinuousEventPriority_old     );
-export const DefaultEventPriority                = enableNewReconciler
-  ? (DefaultEventPriority_new     )
-  : (DefaultEventPriority_old     );
-export const IdleEventPriority                = enableNewReconciler
-  ? (IdleEventPriority_new     )
-  : (IdleEventPriority_old     );
-
-export function runWithPriority   (priority               , fn         )    {
-  return enableNewReconciler
-    ? runWithPriority_new((priority     ), fn)
-    : runWithPriority_old((priority     ), fn);
+export function runWithPriority(priority, fn) {
+  return enableNewReconciler ? runWithPriority_new(priority, fn) : runWithPriority_old(priority, fn);
 }
 
-export function getCurrentUpdatePriority()                {
-  return enableNewReconciler
-    ? (getCurrentUpdatePriority_new()     )
-    : (getCurrentUpdatePriority_old()     );
+export function getCurrentUpdatePriority() {
+  return enableNewReconciler ? getCurrentUpdatePriority_new() : getCurrentUpdatePriority_old();
 }
 
-export function setCurrentUpdatePriority(priority               ) {
-  return enableNewReconciler
-    ? setCurrentUpdatePriority_new((priority     ))
-    : setCurrentUpdatePriority_old((priority     ));
+export function setCurrentUpdatePriority(priority) {
+  return enableNewReconciler ? setCurrentUpdatePriority_new(priority) : setCurrentUpdatePriority_old(priority);
 }
 
-export function isHigherEventPriority(
-  a               ,
-  b               ,
-)          {
-  return enableNewReconciler
-    ? isHigherEventPriority_new((a     ), (b     ))
-    : isHigherEventPriority_old((a     ), (b     ));
+export function isHigherEventPriority(a, b) {
+  return enableNewReconciler ? isHigherEventPriority_new(a, b) : isHigherEventPriority_old(a, b);
 }
