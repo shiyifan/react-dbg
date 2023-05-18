@@ -4,14 +4,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
-                                                               
-                                                                       
-                                                                              
-                                                          
-import {enableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay} from 'shared/ReactFeatureFlags';
+import { enableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay } from 'shared/ReactFeatureFlags';
 import {
   isDiscreteEventThatRequiresHydration,
   queueDiscreteEvent,
@@ -25,16 +21,13 @@ import {
   getContainerFromFiber,
   getSuspenseInstanceFromFiber,
 } from 'react-reconciler/src/ReactFiberTreeReflection';
-import {HostRoot, SuspenseComponent} from 'react-reconciler/src/ReactWorkTags';
-import {                       IS_CAPTURE_PHASE} from './EventSystemFlags';
+import { HostRoot, SuspenseComponent } from 'react-reconciler/src/ReactWorkTags';
+import { IS_CAPTURE_PHASE } from './EventSystemFlags';
 
 import getEventTarget from './getEventTarget';
-import {
-  getInstanceFromNode,
-  getClosestInstanceFromNode,
-} from '../client/ReactDOMComponentTree';
+import { getInstanceFromNode, getClosestInstanceFromNode } from '../client/ReactDOMComponentTree';
 
-import {dispatchEventForPluginEventSystem} from './DOMPluginEventSystem';
+import { dispatchEventForPluginEventSystem } from './DOMPluginEventSystem';
 
 import {
   getCurrentPriorityLevel as getCurrentSchedulerPriorityLevel,
@@ -53,16 +46,16 @@ import {
   setCurrentUpdatePriority,
 } from 'react-reconciler/src/ReactEventPriorities';
 import ReactSharedInternals from 'shared/ReactSharedInternals';
-import {isRootDehydrated} from 'react-reconciler/src/ReactFiberShellHydration';
+import { isRootDehydrated } from 'react-reconciler/src/ReactFiberShellHydration';
 
-const {ReactCurrentBatchConfig} = ReactSharedInternals;
+const { ReactCurrentBatchConfig } = ReactSharedInternals;
 
 // TODO: can we stop exporting these?
 export let _enabled = true;
 
 // This is exported in FB builds for use by legacy FB layer infra.
 // We'd like to remove this but it's not clear if this is safe.
-export function setEnabled(enabled          ) {
+export function setEnabled(enabled) {
   _enabled = !!enabled;
 }
 
@@ -70,24 +63,11 @@ export function isEnabled() {
   return _enabled;
 }
 
-export function createEventListenerWrapper(
-  targetContainer             ,
-  domEventName              ,
-  eventSystemFlags                  ,
-)           {
-  return dispatchEvent.bind(
-    null,
-    domEventName,
-    eventSystemFlags,
-    targetContainer,
-  );
+export function createEventListenerWrapper(targetContainer, domEventName, eventSystemFlags) {
+  return dispatchEvent.bind(null, domEventName, eventSystemFlags, targetContainer);
 }
 
-export function createEventListenerWrapperWithPriority(
-  targetContainer             ,
-  domEventName              ,
-  eventSystemFlags                  ,
-)           {
+export function createEventListenerWrapperWithPriority(targetContainer, domEventName, eventSystemFlags) {
   const eventPriority = getEventPriority(domEventName);
   let listenerWrapper;
   switch (eventPriority) {
@@ -102,20 +82,10 @@ export function createEventListenerWrapperWithPriority(
       listenerWrapper = dispatchEvent;
       break;
   }
-  return listenerWrapper.bind(
-    null,
-    domEventName,
-    eventSystemFlags,
-    targetContainer,
-  );
+  return listenerWrapper.bind(null, domEventName, eventSystemFlags, targetContainer);
 }
 
-function dispatchDiscreteEvent(
-  domEventName,
-  eventSystemFlags,
-  container,
-  nativeEvent,
-) {
+function dispatchDiscreteEvent(domEventName, eventSystemFlags, container, nativeEvent) {
   const previousPriority = getCurrentUpdatePriority();
   const prevTransition = ReactCurrentBatchConfig.transition;
   ReactCurrentBatchConfig.transition = null;
@@ -128,12 +98,7 @@ function dispatchDiscreteEvent(
   }
 }
 
-function dispatchContinuousEvent(
-  domEventName,
-  eventSystemFlags,
-  container,
-  nativeEvent,
-) {
+function dispatchContinuousEvent(domEventName, eventSystemFlags, container, nativeEvent) {
   const previousPriority = getCurrentUpdatePriority();
   const prevTransition = ReactCurrentBatchConfig.transition;
   ReactCurrentBatchConfig.transition = null;
@@ -146,12 +111,7 @@ function dispatchContinuousEvent(
   }
 }
 
-export function dispatchEvent(
-  domEventName              ,
-  eventSystemFlags                  ,
-  targetContainer             ,
-  nativeEvent                ,
-)       {
+export function dispatchEvent(domEventName, eventSystemFlags, targetContainer, nativeEvent) {
   if (!_enabled) {
     return;
   }
@@ -160,24 +120,14 @@ export function dispatchEvent(
       domEventName,
       eventSystemFlags,
       targetContainer,
-      nativeEvent,
+      nativeEvent
     );
   } else {
-    dispatchEventOriginal(
-      domEventName,
-      eventSystemFlags,
-      targetContainer,
-      nativeEvent,
-    );
+    dispatchEventOriginal(domEventName, eventSystemFlags, targetContainer, nativeEvent);
   }
 }
 
-function dispatchEventOriginal(
-  domEventName              ,
-  eventSystemFlags                  ,
-  targetContainer             ,
-  nativeEvent                ,
-) {
+function dispatchEventOriginal(domEventName, eventSystemFlags, targetContainer, nativeEvent) {
   // TODO: replaying capture phase events is currently broken
   // because we used to do it during top-level native bubble handlers
   // but now we use different bubble and capture handlers.
@@ -185,11 +135,7 @@ function dispatchEventOriginal(
   // to filter them out until we fix the logic to handle them correctly.
   const allowReplay = (eventSystemFlags & IS_CAPTURE_PHASE) === 0;
 
-  if (
-    allowReplay &&
-    hasQueuedDiscreteEvents() &&
-    isDiscreteEventThatRequiresHydration(domEventName)
-  ) {
+  if (allowReplay && hasQueuedDiscreteEvents() && isDiscreteEventThatRequiresHydration(domEventName)) {
     // If we already have a queue of discrete events, and this is another discrete
     // event, then we can't dispatch it regardless of its target, since they
     // need to dispatch in order.
@@ -198,25 +144,14 @@ function dispatchEventOriginal(
       domEventName,
       eventSystemFlags,
       targetContainer,
-      nativeEvent,
+      nativeEvent
     );
     return;
   }
 
-  const blockedOn = findInstanceBlockingEvent(
-    domEventName,
-    eventSystemFlags,
-    targetContainer,
-    nativeEvent,
-  );
+  const blockedOn = findInstanceBlockingEvent(domEventName, eventSystemFlags, targetContainer, nativeEvent);
   if (blockedOn === null) {
-    dispatchEventForPluginEventSystem(
-      domEventName,
-      eventSystemFlags,
-      nativeEvent,
-      return_targetInst,
-      targetContainer,
-    );
+    dispatchEventForPluginEventSystem(domEventName, eventSystemFlags, nativeEvent, return_targetInst, targetContainer);
     if (allowReplay) {
       clearIfContinuousEvent(domEventName, nativeEvent);
     }
@@ -226,24 +161,10 @@ function dispatchEventOriginal(
   if (allowReplay) {
     if (isDiscreteEventThatRequiresHydration(domEventName)) {
       // This this to be replayed later once the target is available.
-      queueDiscreteEvent(
-        blockedOn,
-        domEventName,
-        eventSystemFlags,
-        targetContainer,
-        nativeEvent,
-      );
+      queueDiscreteEvent(blockedOn, domEventName, eventSystemFlags, targetContainer, nativeEvent);
       return;
     }
-    if (
-      queueIfContinuousEvent(
-        blockedOn,
-        domEventName,
-        eventSystemFlags,
-        targetContainer,
-        nativeEvent,
-      )
-    ) {
+    if (queueIfContinuousEvent(blockedOn, domEventName, eventSystemFlags, targetContainer, nativeEvent)) {
       return;
     }
     // We need to clear only if we didn't queue because
@@ -253,48 +174,23 @@ function dispatchEventOriginal(
 
   // This is not replayable so we'll invoke it but without a target,
   // in case the event system needs to trace it.
-  dispatchEventForPluginEventSystem(
-    domEventName,
-    eventSystemFlags,
-    nativeEvent,
-    null,
-    targetContainer,
-  );
+  dispatchEventForPluginEventSystem(domEventName, eventSystemFlags, nativeEvent, null, targetContainer);
 }
 
 function dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay(
-  domEventName              ,
-  eventSystemFlags                  ,
-  targetContainer             ,
-  nativeEvent                ,
+  domEventName,
+  eventSystemFlags,
+  targetContainer,
+  nativeEvent
 ) {
-  let blockedOn = findInstanceBlockingEvent(
-    domEventName,
-    eventSystemFlags,
-    targetContainer,
-    nativeEvent,
-  );
+  let blockedOn = findInstanceBlockingEvent(domEventName, eventSystemFlags, targetContainer, nativeEvent);
   if (blockedOn === null) {
-    dispatchEventForPluginEventSystem(
-      domEventName,
-      eventSystemFlags,
-      nativeEvent,
-      return_targetInst,
-      targetContainer,
-    );
+    dispatchEventForPluginEventSystem(domEventName, eventSystemFlags, nativeEvent, return_targetInst, targetContainer);
     clearIfContinuousEvent(domEventName, nativeEvent);
     return;
   }
 
-  if (
-    queueIfContinuousEvent(
-      blockedOn,
-      domEventName,
-      eventSystemFlags,
-      targetContainer,
-      nativeEvent,
-    )
-  ) {
+  if (queueIfContinuousEvent(blockedOn, domEventName, eventSystemFlags, targetContainer, nativeEvent)) {
     nativeEvent.stopPropagation();
     return;
   }
@@ -302,28 +198,20 @@ function dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEve
   // queueing is accumulative.
   clearIfContinuousEvent(domEventName, nativeEvent);
 
-  if (
-    eventSystemFlags & IS_CAPTURE_PHASE &&
-    isDiscreteEventThatRequiresHydration(domEventName)
-  ) {
+  if (eventSystemFlags & IS_CAPTURE_PHASE && isDiscreteEventThatRequiresHydration(domEventName)) {
     while (blockedOn !== null) {
       const fiber = getInstanceFromNode(blockedOn);
       if (fiber !== null) {
         attemptSynchronousHydration(fiber);
       }
-      const nextBlockedOn = findInstanceBlockingEvent(
-        domEventName,
-        eventSystemFlags,
-        targetContainer,
-        nativeEvent,
-      );
+      const nextBlockedOn = findInstanceBlockingEvent(domEventName, eventSystemFlags, targetContainer, nativeEvent);
       if (nextBlockedOn === null) {
         dispatchEventForPluginEventSystem(
           domEventName,
           eventSystemFlags,
           nativeEvent,
           return_targetInst,
-          targetContainer,
+          targetContainer
         );
       }
       if (nextBlockedOn === blockedOn) {
@@ -339,25 +227,14 @@ function dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEve
 
   // This is not replayable so we'll invoke it but without a target,
   // in case the event system needs to trace it.
-  dispatchEventForPluginEventSystem(
-    domEventName,
-    eventSystemFlags,
-    nativeEvent,
-    null,
-    targetContainer,
-  );
+  dispatchEventForPluginEventSystem(domEventName, eventSystemFlags, nativeEvent, null, targetContainer);
 }
 
 export let return_targetInst = null;
 
 // Returns a SuspenseInstance or Container if it's blocked.
 // The return_targetInst field above is conceptually part of the return value.
-export function findInstanceBlockingEvent(
-  domEventName              ,
-  eventSystemFlags                  ,
-  targetContainer             ,
-  nativeEvent                ,
-)                                      {
+export function findInstanceBlockingEvent(domEventName, eventSystemFlags, targetContainer, nativeEvent) {
   // TODO: Warn if _enabled is false.
 
   return_targetInst = null;
@@ -386,7 +263,7 @@ export function findInstanceBlockingEvent(
         // TODO: Warn.
         targetInst = null;
       } else if (tag === HostRoot) {
-        const root            = nearestMounted.stateNode;
+        const root = nearestMounted.stateNode;
         if (isRootDehydrated(root)) {
           // If this happens during a replay something went wrong and it might block
           // the whole system.
@@ -407,7 +284,7 @@ export function findInstanceBlockingEvent(
   return null;
 }
 
-export function getEventPriority(domEventName              )    {
+export function getEventPriority(domEventName) {
   switch (domEventName) {
     // Used by SimpleEventPlugin:
     case 'cancel':
