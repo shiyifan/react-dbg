@@ -4,38 +4,20 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
-                                                  
 import {
-                        
   SHOULD_NOT_DEFER_CLICK_FOR_FB_SUPPORT_MODE,
   IS_LEGACY_FB_SUPPORT_MODE,
   SHOULD_NOT_PROCESS_POLYFILL_EVENT_PLUGINS,
 } from './EventSystemFlags';
-                                                       
-             
-                           
-                      
-                                   
-                                                                   
 
-import {allNativeEvents} from './EventRegistry';
-import {
-  IS_CAPTURE_PHASE,
-  IS_EVENT_HANDLE_NON_MANAGED_NODE,
-  IS_NON_DELEGATED,
-} from './EventSystemFlags';
-import {isReplayingEvent} from './CurrentReplayingEvent';
+import { allNativeEvents } from './EventRegistry';
+import { IS_CAPTURE_PHASE, IS_EVENT_HANDLE_NON_MANAGED_NODE, IS_NON_DELEGATED } from './EventSystemFlags';
+import { isReplayingEvent } from './CurrentReplayingEvent';
 
-import {
-  HostRoot,
-  HostPortal,
-  HostComponent,
-  HostText,
-  ScopeComponent,
-} from 'react-reconciler/src/ReactWorkTags';
+import { HostRoot, HostPortal, HostComponent, HostText, ScopeComponent } from 'react-reconciler/src/ReactWorkTags';
 
 import getEventTarget from './getEventTarget';
 import {
@@ -43,22 +25,15 @@ import {
   getEventListenerSet,
   getEventHandlerListeners,
 } from '../client/ReactDOMComponentTree';
-import {COMMENT_NODE} from '../shared/HTMLNodeType';
-import {batchedUpdates} from './ReactDOMUpdateBatching';
+import { COMMENT_NODE } from '../shared/HTMLNodeType';
+import { batchedUpdates } from './ReactDOMUpdateBatching';
 import getListener from './getListener';
-import {passiveBrowserEventsSupported} from './checkPassiveEvents';
+import { passiveBrowserEventsSupported } from './checkPassiveEvents';
 
-import {
-  enableLegacyFBSupport,
-  enableCreateEventHandleAPI,
-  enableScopeAPI,
-} from 'shared/ReactFeatureFlags';
-import {
-  invokeGuardedCallbackAndCatchFirstError,
-  rethrowCaughtError,
-} from 'shared/ReactErrorUtils';
-import {DOCUMENT_NODE} from '../shared/HTMLNodeType';
-import {createEventListenerWrapperWithPriority} from './ReactDOMEventListener';
+import { enableLegacyFBSupport, enableCreateEventHandleAPI, enableScopeAPI } from 'shared/ReactFeatureFlags';
+import { invokeGuardedCallbackAndCatchFirstError, rethrowCaughtError } from 'shared/ReactErrorUtils';
+import { DOCUMENT_NODE } from '../shared/HTMLNodeType';
+import { createEventListenerWrapperWithPriority } from './ReactDOMEventListener';
 import {
   removeEventListener,
   addEventCaptureListener,
@@ -72,19 +47,6 @@ import * as EnterLeaveEventPlugin from './plugins/EnterLeaveEventPlugin';
 import * as SelectEventPlugin from './plugins/SelectEventPlugin';
 import * as SimpleEventPlugin from './plugins/SimpleEventPlugin';
 
-                          
-                         
-                     
-                             
-   
-
-                       
-                             
-                                     
-   
-
-                                                 
-
 // TODO: remove top-level side effect.
 SimpleEventPlugin.registerEvents();
 EnterLeaveEventPlugin.registerEvents();
@@ -93,13 +55,13 @@ SelectEventPlugin.registerEvents();
 BeforeInputEventPlugin.registerEvents();
 
 function extractEvents(
-  dispatchQueue               ,
-  domEventName              ,
-  targetInst              ,
-  nativeEvent                ,
-  nativeEventTarget                    ,
-  eventSystemFlags                  ,
-  targetContainer             ,
+  dispatchQueue,
+  domEventName,
+  targetInst,
+  nativeEvent,
+  nativeEventTarget,
+  eventSystemFlags,
+  targetContainer
 ) {
   // TODO: we should remove the concept of a "SimpleEventPlugin".
   // This is the basic functionality of the event system. All
@@ -114,10 +76,9 @@ function extractEvents(
     nativeEvent,
     nativeEventTarget,
     eventSystemFlags,
-    targetContainer,
+    targetContainer
   );
-  const shouldProcessPolyfillPlugins =
-    (eventSystemFlags & SHOULD_NOT_PROCESS_POLYFILL_EVENT_PLUGINS) === 0;
+  const shouldProcessPolyfillPlugins = (eventSystemFlags & SHOULD_NOT_PROCESS_POLYFILL_EVENT_PLUGINS) === 0;
   // We don't process these events unless we are in the
   // event's native "bubble" phase, which means that we're
   // not in the capture phase. That's because we emulate
@@ -143,7 +104,7 @@ function extractEvents(
       nativeEvent,
       nativeEventTarget,
       eventSystemFlags,
-      targetContainer,
+      targetContainer
     );
     ChangeEventPlugin.extractEvents(
       dispatchQueue,
@@ -152,7 +113,7 @@ function extractEvents(
       nativeEvent,
       nativeEventTarget,
       eventSystemFlags,
-      targetContainer,
+      targetContainer
     );
     SelectEventPlugin.extractEvents(
       dispatchQueue,
@@ -161,7 +122,7 @@ function extractEvents(
       nativeEvent,
       nativeEventTarget,
       eventSystemFlags,
-      targetContainer,
+      targetContainer
     );
     BeforeInputEventPlugin.extractEvents(
       dispatchQueue,
@@ -170,13 +131,13 @@ function extractEvents(
       nativeEvent,
       nativeEventTarget,
       eventSystemFlags,
-      targetContainer,
+      targetContainer
     );
   }
 }
 
 // List of events that need to be individually attached to media elements.
-export const mediaEventTypes                      = [
+export const mediaEventTypes = [
   'abort',
   'canplay',
   'canplaythrough',
@@ -206,7 +167,7 @@ export const mediaEventTypes                      = [
 // We should not delegate these events to the container, but rather
 // set them on the actual target element itself. This is primarily
 // because these events do not consistently bubble in the DOM.
-export const nonDelegatedEvents                    = new Set([
+export const nonDelegatedEvents = new Set([
   'cancel',
   'close',
   'invalid',
@@ -220,26 +181,18 @@ export const nonDelegatedEvents                    = new Set([
   ...mediaEventTypes,
 ]);
 
-function executeDispatch(
-  event                     ,
-  listener          ,
-  currentTarget             ,
-)       {
+function executeDispatch(event, listener, currentTarget) {
   const type = event.type || 'unknown-event';
   event.currentTarget = currentTarget;
   invokeGuardedCallbackAndCatchFirstError(type, listener, undefined, event);
   event.currentTarget = null;
 }
 
-function processDispatchQueueItemsInOrder(
-  event                     ,
-  dispatchListeners                         ,
-  inCapturePhase         ,
-)       {
+function processDispatchQueueItemsInOrder(event, dispatchListeners, inCapturePhase) {
   let previousInstance;
   if (inCapturePhase) {
     for (let i = dispatchListeners.length - 1; i >= 0; i--) {
-      const {instance, currentTarget, listener} = dispatchListeners[i];
+      const { instance, currentTarget, listener } = dispatchListeners[i];
       if (instance !== previousInstance && event.isPropagationStopped()) {
         return;
       }
@@ -248,7 +201,7 @@ function processDispatchQueueItemsInOrder(
     }
   } else {
     for (let i = 0; i < dispatchListeners.length; i++) {
-      const {instance, currentTarget, listener} = dispatchListeners[i];
+      const { instance, currentTarget, listener } = dispatchListeners[i];
       if (instance !== previousInstance && event.isPropagationStopped()) {
         return;
       }
@@ -258,13 +211,10 @@ function processDispatchQueueItemsInOrder(
   }
 }
 
-export function processDispatchQueue(
-  dispatchQueue               ,
-  eventSystemFlags                  ,
-)       {
+export function processDispatchQueue(dispatchQueue, eventSystemFlags) {
   const inCapturePhase = (eventSystemFlags & IS_CAPTURE_PHASE) !== 0;
   for (let i = 0; i < dispatchQueue.length; i++) {
-    const {event, listeners} = dispatchQueue[i];
+    const { event, listeners } = dispatchQueue[i];
     processDispatchQueueItemsInOrder(event, listeners, inCapturePhase);
     //  event system doesn't use pooling.
   }
@@ -272,15 +222,9 @@ export function processDispatchQueue(
   rethrowCaughtError();
 }
 
-function dispatchEventsForPlugins(
-  domEventName              ,
-  eventSystemFlags                  ,
-  nativeEvent                ,
-  targetInst              ,
-  targetContainer             ,
-)       {
+function dispatchEventsForPlugins(domEventName, eventSystemFlags, nativeEvent, targetInst, targetContainer) {
   const nativeEventTarget = getEventTarget(nativeEvent);
-  const dispatchQueue                = [];
+  const dispatchQueue = [];
   extractEvents(
     dispatchQueue,
     domEventName,
@@ -288,52 +232,37 @@ function dispatchEventsForPlugins(
     nativeEvent,
     nativeEventTarget,
     eventSystemFlags,
-    targetContainer,
+    targetContainer
   );
   processDispatchQueue(dispatchQueue, eventSystemFlags);
 }
 
-export function listenToNonDelegatedEvent(
-  domEventName              ,
-  targetElement         ,
-)       {
+export function listenToNonDelegatedEvent(domEventName, targetElement) {
   if (__DEV__) {
     if (!nonDelegatedEvents.has(domEventName)) {
       console.error(
         'Did not expect a listenToNonDelegatedEvent() call for "%s". ' +
           'This is a bug in React. Please file an issue.',
-        domEventName,
+        domEventName
       );
     }
   }
   const isCapturePhaseListener = false;
   const listenerSet = getEventListenerSet(targetElement);
-  const listenerSetKey = getListenerSetKey(
-    domEventName,
-    isCapturePhaseListener,
-  );
+  const listenerSetKey = getListenerSetKey(domEventName, isCapturePhaseListener);
   if (!listenerSet.has(listenerSetKey)) {
-    addTrappedEventListener(
-      targetElement,
-      domEventName,
-      IS_NON_DELEGATED,
-      isCapturePhaseListener,
-    );
+    addTrappedEventListener(targetElement, domEventName, IS_NON_DELEGATED, isCapturePhaseListener);
     listenerSet.add(listenerSetKey);
   }
 }
 
-export function listenToNativeEvent(
-  domEventName              ,
-  isCapturePhaseListener         ,
-  target             ,
-)       {
+export function listenToNativeEvent(domEventName, isCapturePhaseListener, target) {
   if (__DEV__) {
     if (nonDelegatedEvents.has(domEventName) && !isCapturePhaseListener) {
       console.error(
         'Did not expect a listenToNativeEvent() call for "%s" in the bubble phase. ' +
           'This is a bug in React. Please file an issue.',
-        domEventName,
+        domEventName
       );
     }
   }
@@ -342,50 +271,29 @@ export function listenToNativeEvent(
   if (isCapturePhaseListener) {
     eventSystemFlags |= IS_CAPTURE_PHASE;
   }
-  addTrappedEventListener(
-    target,
-    domEventName,
-    eventSystemFlags,
-    isCapturePhaseListener,
-  );
+  addTrappedEventListener(target, domEventName, eventSystemFlags, isCapturePhaseListener);
 }
 
 // This is only used by createEventHandle when the
 // target is not a DOM element. E.g. window.
-export function listenToNativeEventForNonManagedEventTarget(
-  domEventName              ,
-  isCapturePhaseListener         ,
-  target             ,
-)       {
+export function listenToNativeEventForNonManagedEventTarget(domEventName, isCapturePhaseListener, target) {
   let eventSystemFlags = IS_EVENT_HANDLE_NON_MANAGED_NODE;
   const listenerSet = getEventListenerSet(target);
-  const listenerSetKey = getListenerSetKey(
-    domEventName,
-    isCapturePhaseListener,
-  );
+  const listenerSetKey = getListenerSetKey(domEventName, isCapturePhaseListener);
   if (!listenerSet.has(listenerSetKey)) {
     if (isCapturePhaseListener) {
       eventSystemFlags |= IS_CAPTURE_PHASE;
     }
-    addTrappedEventListener(
-      target,
-      domEventName,
-      eventSystemFlags,
-      isCapturePhaseListener,
-    );
+    addTrappedEventListener(target, domEventName, eventSystemFlags, isCapturePhaseListener);
     listenerSet.add(listenerSetKey);
   }
 }
 
-const listeningMarker =
-  '_reactListening' +
-  Math.random()
-    .toString(36)
-    .slice(2);
+const listeningMarker = '_reactListening' + Math.random().toString(36).slice(2);
 
-export function listenToAllSupportedEvents(rootContainerElement             ) {
-  if (!(rootContainerElement     )[listeningMarker]) {
-    (rootContainerElement     )[listeningMarker] = true;
+export function listenToAllSupportedEvents(rootContainerElement) {
+  if (!rootContainerElement[listeningMarker]) {
+    rootContainerElement[listeningMarker] = true;
     allNativeEvents.forEach(domEventName => {
       // We handle selectionchange separately because it
       // doesn't bubble and needs to be on the document.
@@ -397,14 +305,12 @@ export function listenToAllSupportedEvents(rootContainerElement             ) {
       }
     });
     const ownerDocument =
-      (rootContainerElement     ).nodeType === DOCUMENT_NODE
-        ? rootContainerElement
-        : (rootContainerElement     ).ownerDocument;
+      rootContainerElement.nodeType === DOCUMENT_NODE ? rootContainerElement : rootContainerElement.ownerDocument;
     if (ownerDocument !== null) {
       // The selectionchange event also needs deduplication
       // but it is attached to the document.
-      if (!(ownerDocument     )[listeningMarker]) {
-        (ownerDocument     )[listeningMarker] = true;
+      if (!ownerDocument[listeningMarker]) {
+        ownerDocument[listeningMarker] = true;
         listenToNativeEvent('selectionchange', false, ownerDocument);
       }
     }
@@ -412,17 +318,13 @@ export function listenToAllSupportedEvents(rootContainerElement             ) {
 }
 
 function addTrappedEventListener(
-  targetContainer             ,
-  domEventName              ,
-  eventSystemFlags                  ,
-  isCapturePhaseListener         ,
-  isDeferredListenerForLegacyFBSupport          ,
+  targetContainer,
+  domEventName,
+  eventSystemFlags,
+  isCapturePhaseListener,
+  isDeferredListenerForLegacyFBSupport
 ) {
-  let listener = createEventListenerWrapperWithPriority(
-    targetContainer,
-    domEventName,
-    eventSystemFlags,
-  );
+  let listener = createEventListenerWrapperWithPriority(targetContainer, domEventName, eventSystemFlags);
   // If passive option is not supported, then the event will be
   // active and not passive.
   let isPassiveListener = undefined;
@@ -433,19 +335,13 @@ function addTrappedEventListener(
     // the performance wins from the change. So we emulate
     // the existing behavior manually on the roots now.
     // https://github.com/facebook/react/issues/19651
-    if (
-      domEventName === 'touchstart' ||
-      domEventName === 'touchmove' ||
-      domEventName === 'wheel'
-    ) {
+    if (domEventName === 'touchstart' || domEventName === 'touchmove' || domEventName === 'wheel') {
       isPassiveListener = true;
     }
   }
 
   targetContainer =
-    enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport
-      ? (targetContainer     ).ownerDocument
-      : targetContainer;
+    enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport ? targetContainer.ownerDocument : targetContainer;
 
   let unsubscribeListener;
   // When legacyFBSupport is enabled, it's for when we
@@ -461,13 +357,8 @@ function addTrappedEventListener(
   // need support for such browsers.
   if (enableLegacyFBSupport && isDeferredListenerForLegacyFBSupport) {
     const originalListener = listener;
-    listener = function(...p) {
-      removeEventListener(
-        targetContainer,
-        domEventName,
-        unsubscribeListener,
-        isCapturePhaseListener,
-      );
+    listener = function (...p) {
+      removeEventListener(targetContainer, domEventName, unsubscribeListener, isCapturePhaseListener);
       return originalListener.apply(this, p);
     };
   }
@@ -478,14 +369,10 @@ function addTrappedEventListener(
         targetContainer,
         domEventName,
         listener,
-        isPassiveListener,
+        isPassiveListener
       );
     } else {
-      unsubscribeListener = addEventCaptureListener(
-        targetContainer,
-        domEventName,
-        listener,
-      );
+      unsubscribeListener = addEventCaptureListener(targetContainer, domEventName, listener);
     }
   } else {
     if (isPassiveListener !== undefined) {
@@ -493,22 +380,15 @@ function addTrappedEventListener(
         targetContainer,
         domEventName,
         listener,
-        isPassiveListener,
+        isPassiveListener
       );
     } else {
-      unsubscribeListener = addEventBubbleListener(
-        targetContainer,
-        domEventName,
-        listener,
-      );
+      unsubscribeListener = addEventBubbleListener(targetContainer, domEventName, listener);
     }
   }
 }
 
-function deferClickToDocumentForLegacyFBSupport(
-  domEventName              ,
-  targetContainer             ,
-)       {
+function deferClickToDocumentForLegacyFBSupport(domEventName, targetContainer) {
   // We defer all click events with legacy FB support mode on.
   // This means we add a one time event listener to trigger
   // after the FB delegated listeners fire.
@@ -518,34 +398,27 @@ function deferClickToDocumentForLegacyFBSupport(
     domEventName,
     IS_LEGACY_FB_SUPPORT_MODE,
     false,
-    isDeferredListenerForLegacyFBSupport,
+    isDeferredListenerForLegacyFBSupport
   );
 }
 
-function isMatchingRootContainer(
-  grandContainer         ,
-  targetContainer             ,
-)          {
+function isMatchingRootContainer(grandContainer, targetContainer) {
   return (
     grandContainer === targetContainer ||
-    (grandContainer.nodeType === COMMENT_NODE &&
-      grandContainer.parentNode === targetContainer)
+    (grandContainer.nodeType === COMMENT_NODE && grandContainer.parentNode === targetContainer)
   );
 }
 
 export function dispatchEventForPluginEventSystem(
-  domEventName              ,
-  eventSystemFlags                  ,
-  nativeEvent                ,
-  targetInst              ,
-  targetContainer             ,
-)       {
+  domEventName,
+  eventSystemFlags,
+  nativeEvent,
+  targetInst,
+  targetContainer
+) {
   let ancestorInst = targetInst;
-  if (
-    (eventSystemFlags & IS_EVENT_HANDLE_NON_MANAGED_NODE) === 0 &&
-    (eventSystemFlags & IS_NON_DELEGATED) === 0
-  ) {
-    const targetContainerNode = ((targetContainer     )      );
+  if ((eventSystemFlags & IS_EVENT_HANDLE_NON_MANAGED_NODE) === 0 && (eventSystemFlags & IS_NON_DELEGATED) === 0) {
+    const targetContainerNode = targetContainer;
 
     // If we are using the legacy FB support flag, we
     // defer the event to the null with a one
@@ -598,9 +471,7 @@ export function dispatchEventForPluginEventSystem(
               const grandTag = grandNode.tag;
               if (grandTag === HostRoot || grandTag === HostPortal) {
                 const grandContainer = grandNode.stateNode.containerInfo;
-                if (
-                  isMatchingRootContainer(grandContainer, targetContainerNode)
-                ) {
+                if (isMatchingRootContainer(grandContainer, targetContainerNode)) {
                   // This is the rootContainer we're looking for and we found it as
                   // a parent of the Portal. That means we can ignore it because the
                   // Portal will bubble through to us.
@@ -634,21 +505,11 @@ export function dispatchEventForPluginEventSystem(
   }
 
   batchedUpdates(() =>
-    dispatchEventsForPlugins(
-      domEventName,
-      eventSystemFlags,
-      nativeEvent,
-      ancestorInst,
-      targetContainer,
-    ),
+    dispatchEventsForPlugins(domEventName, eventSystemFlags, nativeEvent, ancestorInst, targetContainer)
   );
 }
 
-function createDispatchListener(
-  instance              ,
-  listener          ,
-  currentTarget             ,
-)                   {
+function createDispatchListener(instance, listener, currentTarget) {
   return {
     instance,
     listener,
@@ -657,45 +518,34 @@ function createDispatchListener(
 }
 
 export function accumulateSinglePhaseListeners(
-  targetFiber              ,
-  reactName               ,
-  nativeEventType        ,
-  inCapturePhase         ,
-  accumulateTargetOnly         ,
-  nativeEvent                ,
-)                          {
+  targetFiber,
+  reactName,
+  nativeEventType,
+  inCapturePhase,
+  accumulateTargetOnly,
+  nativeEvent
+) {
   const captureName = reactName !== null ? reactName + 'Capture' : null;
   const reactEventName = inCapturePhase ? captureName : reactName;
-  let listeners                          = [];
+  let listeners = [];
 
   let instance = targetFiber;
   let lastHostComponent = null;
 
   // Accumulate all instances and listeners via the target -> root path.
   while (instance !== null) {
-    const {stateNode, tag} = instance;
+    const { stateNode, tag } = instance;
     // Handle listeners that are on HostComponents (i.e. <div>)
     if (tag === HostComponent && stateNode !== null) {
       lastHostComponent = stateNode;
 
       // createEventHandle listeners
       if (enableCreateEventHandleAPI) {
-        const eventHandlerListeners = getEventHandlerListeners(
-          lastHostComponent,
-        );
+        const eventHandlerListeners = getEventHandlerListeners(lastHostComponent);
         if (eventHandlerListeners !== null) {
           eventHandlerListeners.forEach(entry => {
-            if (
-              entry.type === nativeEventType &&
-              entry.capture === inCapturePhase
-            ) {
-              listeners.push(
-                createDispatchListener(
-                  instance,
-                  entry.callback,
-                  (lastHostComponent     ),
-                ),
-              );
+            if (entry.type === nativeEventType && entry.capture === inCapturePhase) {
+              listeners.push(createDispatchListener(instance, entry.callback, lastHostComponent));
             }
           });
         }
@@ -705,9 +555,7 @@ export function accumulateSinglePhaseListeners(
       if (reactEventName !== null) {
         const listener = getListener(instance, reactEventName);
         if (listener != null) {
-          listeners.push(
-            createDispatchListener(instance, listener, lastHostComponent),
-          );
+          listeners.push(createDispatchListener(instance, listener, lastHostComponent));
         }
       }
     } else if (
@@ -719,22 +567,11 @@ export function accumulateSinglePhaseListeners(
     ) {
       // Scopes
       const reactScopeInstance = stateNode;
-      const eventHandlerListeners = getEventHandlerListeners(
-        reactScopeInstance,
-      );
+      const eventHandlerListeners = getEventHandlerListeners(reactScopeInstance);
       if (eventHandlerListeners !== null) {
         eventHandlerListeners.forEach(entry => {
-          if (
-            entry.type === nativeEventType &&
-            entry.capture === inCapturePhase
-          ) {
-            listeners.push(
-              createDispatchListener(
-                instance,
-                entry.callback,
-                (lastHostComponent     ),
-              ),
-            );
+          if (entry.type === nativeEventType && entry.capture === inCapturePhase) {
+            listeners.push(createDispatchListener(instance, entry.callback, lastHostComponent));
           }
         });
       }
@@ -756,8 +593,7 @@ export function accumulateSinglePhaseListeners(
       const detachedInterceptFiber = nativeEvent._detachedInterceptFiber;
       if (
         detachedInterceptFiber !== null &&
-        (detachedInterceptFiber === instance ||
-          detachedInterceptFiber === instance.alternate)
+        (detachedInterceptFiber === instance || detachedInterceptFiber === instance.alternate)
       ) {
         listeners = [];
       }
@@ -774,31 +610,24 @@ export function accumulateSinglePhaseListeners(
 // This is because we only process these plugins
 // in the bubble phase, so we need to accumulate two
 // phase event listeners (via emulation).
-export function accumulateTwoPhaseListeners(
-  targetFiber              ,
-  reactName        ,
-)                          {
+export function accumulateTwoPhaseListeners(targetFiber, reactName) {
   const captureName = reactName + 'Capture';
-  const listeners                          = [];
+  const listeners = [];
   let instance = targetFiber;
 
   // Accumulate all instances and listeners via the target -> root path.
   while (instance !== null) {
-    const {stateNode, tag} = instance;
+    const { stateNode, tag } = instance;
     // Handle listeners that are on HostComponents (i.e. <div>)
     if (tag === HostComponent && stateNode !== null) {
       const currentTarget = stateNode;
       const captureListener = getListener(instance, captureName);
       if (captureListener != null) {
-        listeners.unshift(
-          createDispatchListener(instance, captureListener, currentTarget),
-        );
+        listeners.unshift(createDispatchListener(instance, captureListener, currentTarget));
       }
       const bubbleListener = getListener(instance, reactName);
       if (bubbleListener != null) {
-        listeners.push(
-          createDispatchListener(instance, bubbleListener, currentTarget),
-        );
+        listeners.push(createDispatchListener(instance, bubbleListener, currentTarget));
       }
     }
     instance = instance.return;
@@ -806,7 +635,7 @@ export function accumulateTwoPhaseListeners(
   return listeners;
 }
 
-function getParent(inst              )               {
+function getParent(inst) {
   if (inst === null) {
     return null;
   }
@@ -828,7 +657,7 @@ function getParent(inst              )               {
  * Return the lowest common ancestor of A and B, or null if they are in
  * different trees.
  */
-function getLowestCommonAncestor(instA       , instB       )               {
+function getLowestCommonAncestor(instA, instB) {
   let nodeA = instA;
   let nodeB = instB;
   let depthA = 0;
@@ -864,22 +693,16 @@ function getLowestCommonAncestor(instA       , instB       )               {
   return null;
 }
 
-function accumulateEnterLeaveListenersForEvent(
-  dispatchQueue               ,
-  event                          ,
-  target       ,
-  common              ,
-  inCapturePhase         ,
-)       {
+function accumulateEnterLeaveListenersForEvent(dispatchQueue, event, target, common, inCapturePhase) {
   const registrationName = event._reactName;
-  const listeners                          = [];
+  const listeners = [];
 
   let instance = target;
   while (instance !== null) {
     if (instance === common) {
       break;
     }
-    const {alternate, stateNode, tag} = instance;
+    const { alternate, stateNode, tag } = instance;
     if (alternate !== null && alternate === common) {
       break;
     }
@@ -888,23 +711,19 @@ function accumulateEnterLeaveListenersForEvent(
       if (inCapturePhase) {
         const captureListener = getListener(instance, registrationName);
         if (captureListener != null) {
-          listeners.unshift(
-            createDispatchListener(instance, captureListener, currentTarget),
-          );
+          listeners.unshift(createDispatchListener(instance, captureListener, currentTarget));
         }
       } else if (!inCapturePhase) {
         const bubbleListener = getListener(instance, registrationName);
         if (bubbleListener != null) {
-          listeners.push(
-            createDispatchListener(instance, bubbleListener, currentTarget),
-          );
+          listeners.push(createDispatchListener(instance, bubbleListener, currentTarget));
         }
       }
     }
     instance = instance.return;
   }
   if (listeners.length !== 0) {
-    dispatchQueue.push({event, listeners});
+    dispatchQueue.push({ event, listeners });
   }
 }
 
@@ -913,58 +732,31 @@ function accumulateEnterLeaveListenersForEvent(
 // This is because we only process this plugin
 // in the bubble phase, so we need to accumulate two
 // phase event listeners.
-export function accumulateEnterLeaveTwoPhaseListeners(
-  dispatchQueue               ,
-  leaveEvent                          ,
-  enterEvent                                 ,
-  from              ,
-  to              ,
-)       {
+export function accumulateEnterLeaveTwoPhaseListeners(dispatchQueue, leaveEvent, enterEvent, from, to) {
   const common = from && to ? getLowestCommonAncestor(from, to) : null;
 
   if (from !== null) {
-    accumulateEnterLeaveListenersForEvent(
-      dispatchQueue,
-      leaveEvent,
-      from,
-      common,
-      false,
-    );
+    accumulateEnterLeaveListenersForEvent(dispatchQueue, leaveEvent, from, common, false);
   }
   if (to !== null && enterEvent !== null) {
-    accumulateEnterLeaveListenersForEvent(
-      dispatchQueue,
-      enterEvent,
-      to,
-      common,
-      true,
-    );
+    accumulateEnterLeaveListenersForEvent(dispatchQueue, enterEvent, to, common, true);
   }
 }
 
-export function accumulateEventHandleNonManagedNodeListeners(
-  reactEventType              ,
-  currentTarget             ,
-  inCapturePhase         ,
-)                          {
-  const listeners                          = [];
+export function accumulateEventHandleNonManagedNodeListeners(reactEventType, currentTarget, inCapturePhase) {
+  const listeners = [];
 
   const eventListeners = getEventHandlerListeners(currentTarget);
   if (eventListeners !== null) {
     eventListeners.forEach(entry => {
       if (entry.type === reactEventType && entry.capture === inCapturePhase) {
-        listeners.push(
-          createDispatchListener(null, entry.callback, currentTarget),
-        );
+        listeners.push(createDispatchListener(null, entry.callback, currentTarget));
       }
     });
   }
   return listeners;
 }
 
-export function getListenerSetKey(
-  domEventName              ,
-  capture         ,
-)         {
+export function getListenerSetKey(domEventName, capture) {
   return `${domEventName}__${capture ? 'capture' : 'bubble'}`;
 }
