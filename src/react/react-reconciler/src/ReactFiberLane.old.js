@@ -4,18 +4,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
-
-                                                    
-                                                                       
 
 // TODO: Ideally these types would be opaque but that doesn't work well with
 // our reconciler fork infra, since these leak into non-reconciler packages.
-
-                           
-                          
-                                  
 
 import {
   enableSchedulingProfiler,
@@ -23,66 +16,66 @@ import {
   allowConcurrentByDefault,
   enableTransitionTracing,
 } from 'shared/ReactFeatureFlags';
-import {isDevToolsPresent} from './ReactFiberDevToolsHook.old';
-import {ConcurrentUpdatesByDefaultMode, NoMode} from './ReactTypeOfMode';
-import {clz32} from './clz32';
+import { isDevToolsPresent } from './ReactFiberDevToolsHook.old';
+import { ConcurrentUpdatesByDefaultMode, NoMode } from './ReactTypeOfMode';
+import { clz32 } from './clz32';
 
 // Lane values below should be kept in sync with getLabelForLane(), used by react-devtools-timeline.
 // If those values are changed that package should be rebuilt and redeployed.
 
 export const TotalLanes = 31;
 
-export const NoLanes        = /*                        */ 0b0000000000000000000000000000000;
-export const NoLane       = /*                          */ 0b0000000000000000000000000000000;
+export const NoLanes = /*                        */ 0b0000000000000000000000000000000;
+export const NoLane = /*                          */ 0b0000000000000000000000000000000;
 
-export const SyncLane       = /*                        */ 0b0000000000000000000000000000001;
+export const SyncLane = /*                        */ 0b0000000000000000000000000000001;
 
-export const InputContinuousHydrationLane       = /*    */ 0b0000000000000000000000000000010;
-export const InputContinuousLane       = /*             */ 0b0000000000000000000000000000100;
+export const InputContinuousHydrationLane = /*    */ 0b0000000000000000000000000000010;
+export const InputContinuousLane = /*             */ 0b0000000000000000000000000000100;
 
-export const DefaultHydrationLane       = /*            */ 0b0000000000000000000000000001000;
-export const DefaultLane       = /*                     */ 0b0000000000000000000000000010000;
+export const DefaultHydrationLane = /*            */ 0b0000000000000000000000000001000;
+export const DefaultLane = /*                     */ 0b0000000000000000000000000010000;
 
-const TransitionHydrationLane       = /*                */ 0b0000000000000000000000000100000;
-const TransitionLanes        = /*                       */ 0b0000000001111111111111111000000;
-const TransitionLane1       = /*                        */ 0b0000000000000000000000001000000;
-const TransitionLane2       = /*                        */ 0b0000000000000000000000010000000;
-const TransitionLane3       = /*                        */ 0b0000000000000000000000100000000;
-const TransitionLane4       = /*                        */ 0b0000000000000000000001000000000;
-const TransitionLane5       = /*                        */ 0b0000000000000000000010000000000;
-const TransitionLane6       = /*                        */ 0b0000000000000000000100000000000;
-const TransitionLane7       = /*                        */ 0b0000000000000000001000000000000;
-const TransitionLane8       = /*                        */ 0b0000000000000000010000000000000;
-const TransitionLane9       = /*                        */ 0b0000000000000000100000000000000;
-const TransitionLane10       = /*                       */ 0b0000000000000001000000000000000;
-const TransitionLane11       = /*                       */ 0b0000000000000010000000000000000;
-const TransitionLane12       = /*                       */ 0b0000000000000100000000000000000;
-const TransitionLane13       = /*                       */ 0b0000000000001000000000000000000;
-const TransitionLane14       = /*                       */ 0b0000000000010000000000000000000;
-const TransitionLane15       = /*                       */ 0b0000000000100000000000000000000;
-const TransitionLane16       = /*                       */ 0b0000000001000000000000000000000;
+const TransitionHydrationLane = /*                */ 0b0000000000000000000000000100000;
+const TransitionLanes = /*                       */ 0b0000000001111111111111111000000;
+const TransitionLane1 = /*                        */ 0b0000000000000000000000001000000;
+const TransitionLane2 = /*                        */ 0b0000000000000000000000010000000;
+const TransitionLane3 = /*                        */ 0b0000000000000000000000100000000;
+const TransitionLane4 = /*                        */ 0b0000000000000000000001000000000;
+const TransitionLane5 = /*                        */ 0b0000000000000000000010000000000;
+const TransitionLane6 = /*                        */ 0b0000000000000000000100000000000;
+const TransitionLane7 = /*                        */ 0b0000000000000000001000000000000;
+const TransitionLane8 = /*                        */ 0b0000000000000000010000000000000;
+const TransitionLane9 = /*                        */ 0b0000000000000000100000000000000;
+const TransitionLane10 = /*                       */ 0b0000000000000001000000000000000;
+const TransitionLane11 = /*                       */ 0b0000000000000010000000000000000;
+const TransitionLane12 = /*                       */ 0b0000000000000100000000000000000;
+const TransitionLane13 = /*                       */ 0b0000000000001000000000000000000;
+const TransitionLane14 = /*                       */ 0b0000000000010000000000000000000;
+const TransitionLane15 = /*                       */ 0b0000000000100000000000000000000;
+const TransitionLane16 = /*                       */ 0b0000000001000000000000000000000;
 
-const RetryLanes        = /*                            */ 0b0000111110000000000000000000000;
-const RetryLane1       = /*                             */ 0b0000000010000000000000000000000;
-const RetryLane2       = /*                             */ 0b0000000100000000000000000000000;
-const RetryLane3       = /*                             */ 0b0000001000000000000000000000000;
-const RetryLane4       = /*                             */ 0b0000010000000000000000000000000;
-const RetryLane5       = /*                             */ 0b0000100000000000000000000000000;
+const RetryLanes = /*                            */ 0b0000111110000000000000000000000;
+const RetryLane1 = /*                             */ 0b0000000010000000000000000000000;
+const RetryLane2 = /*                             */ 0b0000000100000000000000000000000;
+const RetryLane3 = /*                             */ 0b0000001000000000000000000000000;
+const RetryLane4 = /*                             */ 0b0000010000000000000000000000000;
+const RetryLane5 = /*                             */ 0b0000100000000000000000000000000;
 
-export const SomeRetryLane       = RetryLane1;
+export const SomeRetryLane = RetryLane1;
 
-export const SelectiveHydrationLane       = /*          */ 0b0001000000000000000000000000000;
+export const SelectiveHydrationLane = /*          */ 0b0001000000000000000000000000000;
 
-const NonIdleLanes        = /*                          */ 0b0001111111111111111111111111111;
+const NonIdleLanes = /*                          */ 0b0001111111111111111111111111111;
 
-export const IdleHydrationLane       = /*               */ 0b0010000000000000000000000000000;
-export const IdleLane       = /*                        */ 0b0100000000000000000000000000000;
+export const IdleHydrationLane = /*               */ 0b0010000000000000000000000000000;
+export const IdleLane = /*                        */ 0b0100000000000000000000000000000;
 
-export const OffscreenLane       = /*                   */ 0b1000000000000000000000000000000;
+export const OffscreenLane = /*                   */ 0b1000000000000000000000000000000;
 
 // This function is used for the experimental timeline (react-devtools-timeline)
 // It should be kept in sync with the Lanes values above.
-export function getLabelForLane(lane      )                {
+export function getLabelForLane(lane) {
   if (enableSchedulingProfiler) {
     if (lane & SyncLane) {
       return 'Sync';
@@ -125,10 +118,10 @@ export function getLabelForLane(lane      )                {
 
 export const NoTimestamp = -1;
 
-let nextTransitionLane       = TransitionLane1;
-let nextRetryLane       = RetryLane1;
+let nextTransitionLane = TransitionLane1;
+let nextRetryLane = RetryLane1;
 
-function getHighestPriorityLanes(lanes              )        {
+function getHighestPriorityLanes(lanes) {
   switch (getHighestPriorityLane(lanes)) {
     case SyncLane:
       return SyncLane;
@@ -175,16 +168,14 @@ function getHighestPriorityLanes(lanes              )        {
       return OffscreenLane;
     default:
       if (__DEV__) {
-        console.error(
-          'Should have found matching lanes. This is a bug in React.',
-        );
+        console.error('Should have found matching lanes. This is a bug in React.');
       }
       // This shouldn't be reachable, but as a fallback, return the entire bitmask.
       return lanes;
   }
 }
 
-export function getNextLanes(root           , wipLanes       )        {
+export function getNextLanes(root, wipLanes) {
   // Early bailout if there's no pending work left.
   const pendingLanes = root.pendingLanes;
   if (pendingLanes === NoLanes) {
@@ -253,10 +244,7 @@ export function getNextLanes(root           , wipLanes       )        {
     }
   }
 
-  if (
-    allowConcurrentByDefault &&
-    (root.current.mode & ConcurrentUpdatesByDefaultMode) !== NoMode
-  ) {
+  if (allowConcurrentByDefault && (root.current.mode & ConcurrentUpdatesByDefaultMode) !== NoMode) {
     // Do nothing, use the lanes as they were assigned.
   } else if ((nextLanes & InputContinuousLane) !== NoLanes) {
     // When updates are sync by default, we entangle continuous priority updates
@@ -305,7 +293,7 @@ export function getNextLanes(root           , wipLanes       )        {
   return nextLanes;
 }
 
-export function getMostRecentEventTime(root           , lanes       )         {
+export function getMostRecentEventTime(root, lanes) {
   const eventTimes = root.eventTimes;
 
   let mostRecentEventTime = NoTimestamp;
@@ -324,7 +312,7 @@ export function getMostRecentEventTime(root           , lanes       )         {
   return mostRecentEventTime;
 }
 
-function computeExpirationTime(lane      , currentTime        ) {
+function computeExpirationTime(lane, currentTime) {
   switch (lane) {
     case SyncLane:
     case InputContinuousHydrationLane:
@@ -378,18 +366,13 @@ function computeExpirationTime(lane      , currentTime        ) {
       return NoTimestamp;
     default:
       if (__DEV__) {
-        console.error(
-          'Should have found matching lanes. This is a bug in React.',
-        );
+        console.error('Should have found matching lanes. This is a bug in React.');
       }
       return NoTimestamp;
   }
 }
 
-export function markStarvedLanesAsExpired(
-  root           ,
-  currentTime        ,
-)       {
+export function markStarvedLanesAsExpired(root, currentTime) {
   // TODO: This gets called every time we yield. We can optimize by storing
   // the earliest expiration time on the root. Then use that to quickly bail out
   // of this function.
@@ -412,10 +395,7 @@ export function markStarvedLanesAsExpired(
       // Found a pending lane with no expiration time. If it's not suspended, or
       // if it's pinged, assume it's CPU-bound. Compute a new expiration time
       // using the current time.
-      if (
-        (lane & suspendedLanes) === NoLanes ||
-        (lane & pingedLanes) !== NoLanes
-      ) {
+      if ((lane & suspendedLanes) === NoLanes || (lane & pingedLanes) !== NoLanes) {
         // Assumes timestamps are monotonically increasing.
         expirationTimes[index] = computeExpirationTime(lane, currentTime);
       }
@@ -430,11 +410,11 @@ export function markStarvedLanesAsExpired(
 
 // This returns the highest priority pending lanes regardless of whether they
 // are suspended.
-export function getHighestPriorityPendingLanes(root           ) {
+export function getHighestPriorityPendingLanes(root) {
   return getHighestPriorityLanes(root.pendingLanes);
 }
 
-export function getLanesToRetrySynchronouslyOnError(root           )        {
+export function getLanesToRetrySynchronouslyOnError(root) {
   const everythingButOffscreen = root.pendingLanes & ~OffscreenLane;
   if (everythingButOffscreen !== NoLanes) {
     return everythingButOffscreen;
@@ -445,51 +425,44 @@ export function getLanesToRetrySynchronouslyOnError(root           )        {
   return NoLanes;
 }
 
-export function includesSyncLane(lanes       ) {
+export function includesSyncLane(lanes) {
   return (lanes & SyncLane) !== NoLanes;
 }
 
-export function includesNonIdleWork(lanes       ) {
+export function includesNonIdleWork(lanes) {
   return (lanes & NonIdleLanes) !== NoLanes;
 }
-export function includesOnlyRetries(lanes       ) {
+export function includesOnlyRetries(lanes) {
   return (lanes & RetryLanes) === lanes;
 }
-export function includesOnlyNonUrgentLanes(lanes       ) {
+export function includesOnlyNonUrgentLanes(lanes) {
   const UrgentLanes = SyncLane | InputContinuousLane | DefaultLane;
   return (lanes & UrgentLanes) === NoLanes;
 }
-export function includesOnlyTransitions(lanes       ) {
+export function includesOnlyTransitions(lanes) {
   return (lanes & TransitionLanes) === lanes;
 }
 
-export function includesBlockingLane(root           , lanes       ) {
-  if (
-    allowConcurrentByDefault &&
-    (root.current.mode & ConcurrentUpdatesByDefaultMode) !== NoMode
-  ) {
+export function includesBlockingLane(root, lanes) {
+  if (allowConcurrentByDefault && (root.current.mode & ConcurrentUpdatesByDefaultMode) !== NoMode) {
     // Concurrent updates by default always use time slicing.
     return false;
   }
-  const SyncDefaultLanes =
-    InputContinuousHydrationLane |
-    InputContinuousLane |
-    DefaultHydrationLane |
-    DefaultLane;
+  const SyncDefaultLanes = InputContinuousHydrationLane | InputContinuousLane | DefaultHydrationLane | DefaultLane;
   return (lanes & SyncDefaultLanes) !== NoLanes;
 }
 
-export function includesExpiredLane(root           , lanes       ) {
+export function includesExpiredLane(root, lanes) {
   // This is a separate check from includesBlockingLane because a lane can
   // expire after a render has already started.
   return (lanes & root.expiredLanes) !== NoLanes;
 }
 
-export function isTransitionLane(lane      ) {
+export function isTransitionLane(lane) {
   return (lane & TransitionLanes) !== NoLanes;
 }
 
-export function claimNextTransitionLane()       {
+export function claimNextTransitionLane() {
   // Cycle through the lanes, assigning each new transition to the next lane.
   // In most cases, this means every transition gets its own lane, until we
   // run out of lanes and cycle back to the beginning.
@@ -501,7 +474,7 @@ export function claimNextTransitionLane()       {
   return lane;
 }
 
-export function claimNextRetryLane()       {
+export function claimNextRetryLane() {
   const lane = nextRetryLane;
   nextRetryLane <<= 1;
   if ((nextRetryLane & RetryLanes) === NoLanes) {
@@ -510,11 +483,11 @@ export function claimNextRetryLane()       {
   return lane;
 }
 
-export function getHighestPriorityLane(lanes       )       {
+export function getHighestPriorityLane(lanes) {
   return lanes & -lanes;
 }
 
-export function pickArbitraryLane(lanes       )       {
+export function pickArbitraryLane(lanes) {
   // This wrapper function gets inlined. Only exists so to communicate that it
   // doesn't matter which bit is selected; you can pick any bit without
   // affecting the algorithms where its used. Here I'm using
@@ -522,46 +495,46 @@ export function pickArbitraryLane(lanes       )       {
   return getHighestPriorityLane(lanes);
 }
 
-function pickArbitraryLaneIndex(lanes       ) {
+function pickArbitraryLaneIndex(lanes) {
   return 31 - clz32(lanes);
 }
 
-function laneToIndex(lane      ) {
+function laneToIndex(lane) {
   return pickArbitraryLaneIndex(lane);
 }
 
-export function includesSomeLane(a              , b              ) {
+export function includesSomeLane(a, b) {
   return (a & b) !== NoLanes;
 }
 
-export function isSubsetOfLanes(set       , subset              ) {
+export function isSubsetOfLanes(set, subset) {
   return (set & subset) === subset;
 }
 
-export function mergeLanes(a              , b              )        {
+export function mergeLanes(a, b) {
   return a | b;
 }
 
-export function removeLanes(set       , subset              )        {
+export function removeLanes(set, subset) {
   return set & ~subset;
 }
 
-export function intersectLanes(a              , b              )        {
+export function intersectLanes(a, b) {
   return a & b;
 }
 
 // Seems redundant, but it changes the type from a single lane (used for
 // updates) to a group of lanes (used for flushing work).
-export function laneToLanes(lane      )        {
+export function laneToLanes(lane) {
   return lane;
 }
 
-export function higherPriorityLane(a      , b      ) {
+export function higherPriorityLane(a, b) {
   // This works because the bit ranges decrease in priority as you go left.
   return a !== NoLane && a < b ? a : b;
 }
 
-export function createLaneMap   (initial   )             {
+export function createLaneMap(initial) {
   // Intentionally pushing one by one.
   // https://v8.dev/blog/elements-kinds#avoid-creating-holes
   const laneMap = [];
@@ -571,11 +544,7 @@ export function createLaneMap   (initial   )             {
   return laneMap;
 }
 
-export function markRootUpdated(
-  root           ,
-  updateLane      ,
-  eventTime        ,
-) {
+export function markRootUpdated(root, updateLane, eventTime) {
   root.pendingLanes |= updateLane;
 
   // If there are any suspended transitions, it's possible this new update
@@ -602,7 +571,7 @@ export function markRootUpdated(
   eventTimes[index] = eventTime;
 }
 
-export function markRootSuspended(root           , suspendedLanes       ) {
+export function markRootSuspended(root, suspendedLanes) {
   root.suspendedLanes |= suspendedLanes;
   root.pingedLanes &= ~suspendedLanes;
 
@@ -619,19 +588,15 @@ export function markRootSuspended(root           , suspendedLanes       ) {
   }
 }
 
-export function markRootPinged(
-  root           ,
-  pingedLanes       ,
-  eventTime        ,
-) {
+export function markRootPinged(root, pingedLanes, eventTime) {
   root.pingedLanes |= root.suspendedLanes & pingedLanes;
 }
 
-export function markRootMutableRead(root           , updateLane      ) {
+export function markRootMutableRead(root, updateLane) {
   root.mutableReadLanes |= updateLane & root.pendingLanes;
 }
 
-export function markRootFinished(root           , remainingLanes       ) {
+export function markRootFinished(root, remainingLanes) {
   const noLongerPendingLanes = root.pendingLanes & ~remainingLanes;
 
   root.pendingLanes = remainingLanes;
@@ -663,7 +628,7 @@ export function markRootFinished(root           , remainingLanes       ) {
   }
 }
 
-export function markRootEntangled(root           , entangledLanes       ) {
+export function markRootEntangled(root, entangledLanes) {
   // In addition to entangling each of the given lanes with each other, we also
   // have to consider _transitive_ entanglements. For each lane that is already
   // entangled with *any* of the given lanes, that lane is now transitively
@@ -694,10 +659,7 @@ export function markRootEntangled(root           , entangledLanes       ) {
   }
 }
 
-export function getBumpedLaneForHydration(
-  root           ,
-  renderLanes       ,
-)       {
+export function getBumpedLaneForHydration(root, renderLanes) {
   const renderLane = getHighestPriorityLane(renderLanes);
 
   let lane;
@@ -752,11 +714,7 @@ export function getBumpedLaneForHydration(
   return lane;
 }
 
-export function addFiberToLanesMap(
-  root           ,
-  fiber       ,
-  lanes              ,
-) {
+export function addFiberToLanesMap(root, fiber, lanes) {
   if (!enableUpdaterTracking) {
     return;
   }
@@ -775,7 +733,7 @@ export function addFiberToLanesMap(
   }
 }
 
-export function movePendingFibersToMemoized(root           , lanes       ) {
+export function movePendingFibersToMemoized(root, lanes) {
   if (!enableUpdaterTracking) {
     return;
   }
@@ -803,11 +761,7 @@ export function movePendingFibersToMemoized(root           , lanes       ) {
   }
 }
 
-export function addTransitionToLanesMap(
-  root           ,
-  transition            ,
-  lane      ,
-) {
+export function addTransitionToLanesMap(root, transition, lane) {
   if (enableTransitionTracing) {
     const transitionLanesMap = root.transitionLanes;
     const index = laneToIndex(lane);
@@ -821,10 +775,7 @@ export function addTransitionToLanesMap(
   }
 }
 
-export function getTransitionsForLanes(
-  root           ,
-  lanes              ,
-)                           {
+export function getTransitionsForLanes(root, lanes) {
   if (!enableTransitionTracing) {
     return null;
   }
@@ -850,7 +801,7 @@ export function getTransitionsForLanes(
   return transitionsForLanes;
 }
 
-export function clearTransitionsForLanes(root           , lanes              ) {
+export function clearTransitionsForLanes(root, lanes) {
   if (!enableTransitionTracing) {
     return;
   }
