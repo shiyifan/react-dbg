@@ -7,10 +7,24 @@
     {
       "type": "msedge",
       "request": "launch",
-      "name": "Launch Edge against localhost",
+      "name": "Edge",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/src",
-      // "firefoxExecutable": "D:\\Program Files (x86)\\Firefox Developer Edition\\firefox.exe"
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "firefox",
+      "request": "launch",
+      "name": "FireFox",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}",
+      "firefoxExecutable": "D:\\Program Files (x86)\\Firefox Developer Edition\\firefox.exe",
+      // "firefoxArgs": ["-start-debugger-server"]
+      "log": {
+        "consoleLevel": {
+          "PathConversion": "Debug",
+          "default": "Error"
+        }
+      }
     }
   ]
 }
