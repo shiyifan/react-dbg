@@ -1,17 +1,9 @@
-import { useState } from 'react';
-
 function App() {
-  return <Hooey />;
-}
-
-function Hooey() {
-  const [c, setc] = useState(0);
+  function onClick() {}
   return (
-    <>
-      Number: {c}
-      <button onClick={() => setc(c => c + 1)}>Add</button>
-    </>
+    <button id="btn" onClick={onClick} key="123">
+      Click Me
+    </button>
   );
 }
-
 export default App;
