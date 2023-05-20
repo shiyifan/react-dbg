@@ -4,12 +4,10 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- *      
+ *
  */
 
-import {enableCreateEventHandleAPI} from 'shared/ReactFeatureFlags';
-
-                           
+import { enableCreateEventHandleAPI } from 'shared/ReactFeatureFlags';
 
 // Don't change these two values. They're used by React Dev Tools.
 export const NoFlags = /*                      */ 0b00000000000000000000000000;
@@ -31,8 +29,7 @@ export const Hydrating = /*                    */ 0b00000000000001000000000000;
 export const Visibility = /*                   */ 0b00000000000010000000000000;
 export const StoreConsistency = /*             */ 0b00000000000100000000000000;
 
-export const LifecycleEffectMask =
-  Passive | Update | Callback | Ref | Snapshot | StoreConsistency;
+export const LifecycleEffectMask = Passive | Update | Callback | Ref | Snapshot | StoreConsistency;
 
 // Union of all commit flags (flags with the lifetime of a particular commit)
 export const HostEffectMask = /*               */ 0b00000000000111111111111111;
@@ -76,14 +73,7 @@ export const BeforeMutationMask =
       ChildDeletion | Visibility
     : 0);
 
-export const MutationMask =
-  Placement |
-  Update |
-  ChildDeletion |
-  ContentReset |
-  Ref |
-  Hydrating |
-  Visibility;
+export const MutationMask = Placement | Update | ChildDeletion | ContentReset | Ref | Hydrating | Visibility;
 export const LayoutMask = Update | Callback | Ref | Visibility;
 
 // TODO: Split into PassiveMountMask and PassiveUnmountMask
